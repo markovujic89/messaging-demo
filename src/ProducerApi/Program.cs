@@ -1,4 +1,5 @@
 using MassTransit;
+using ProducerApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +19,7 @@ builder.Services.AddMassTransit(x =>
     });
 });
 
+builder.Services.AddScoped<ILeadService, LeadService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
