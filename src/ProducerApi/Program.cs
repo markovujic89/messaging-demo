@@ -1,3 +1,4 @@
+using Lead.Contracts;
 using MassTransit;
 using ProducerApi.Services;
 
@@ -15,6 +16,10 @@ builder.Services.AddMassTransit(x =>
         {
             host.Username("guest");
             host.Password("guest");
+        });
+        cfg.Publish<LeadCreated>(rabbitMqMessagePublishTopologyConfigurator =>
+        {
+            rabbitMqMessagePublishTopologyConfigurator.Durable = true;  // ensures persistent messages
         });
     });
 });

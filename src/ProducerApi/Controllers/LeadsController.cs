@@ -17,11 +17,19 @@ public class LeadsController : ControllerBase
     }
 
 
-    [HttpPost]
+    [HttpPost("individually")]
     public async Task<IActionResult> CreateLead([FromBody] CreateLeadRequest request)
     {
         await _leadService.PublishLead(request);
 
         return Accepted();
+    }
+
+    [HttpPost("bulk")]
+    public async Task<IActionResult> BulkPublish()
+    {
+        await _leadService.BulkPublish();
+
+        return Ok();
     }
 }

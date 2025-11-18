@@ -1,11 +1,17 @@
 using ConsumerApi;
+using ConsumerApi.Models;
+using ConsumerApi.Repository;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddMassTransit(x =>
 {
@@ -22,12 +28,16 @@ builder.Services.AddMassTransit(x =>
         // configure receive endpoint and bind message type
         cfg.ReceiveEndpoint("lead-created-queue", e =>
         {
-            e.ConfigureConsumer<LeadCreatedConsumer>(context);
             // durable, prefetch, retry can be tuned
+            e.Durable = true;
             e.PrefetchCount = 16;
+            e.ConcurrentMessageLimit = 10;
+            e.ConfigureConsumer<LeadCreatedConsumer>(context);
         });
     });
 });
+
+builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();

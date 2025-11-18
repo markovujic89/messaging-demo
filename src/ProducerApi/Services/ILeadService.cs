@@ -5,4 +5,6 @@ namespace ProducerApi.Services;
 public interface ILeadService
 {
     Task PublishLead(CreateLeadRequest request);
+
+    Task BulkPublish();
 }
