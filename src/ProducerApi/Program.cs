@@ -1,5 +1,9 @@
 using Lead.Contracts;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
+using ProducerApi.BackgroundTasks;
+using ProducerApi.Models;
+using ProducerApi.Repository;
 using ProducerApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +11,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers(); // ← ADD THIS LINE
 builder.Services.AddOpenApi();
+
+builder.Services.AddDbContext<ProducerDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddMassTransit(x =>
 {
@@ -25,6 +32,11 @@ builder.Services.AddMassTransit(x =>
 });
 
 builder.Services.AddScoped<ILeadService, LeadService>();
+builder.Services.AddScoped<ILeadRepository, LeadRepository>();
+
+builder.Services.AddScoped<IOutboxProcessor, OutboxProcessor>();
+builder.Services.AddHostedService<OutboxBackgroundService>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

@@ -24,6 +24,12 @@ builder.Services.AddMassTransit(x =>
             h.Username("guest");
             h.Password("guest");
         });
+        
+        // ConfigureEndpoints() makes all queues:
+        // durable
+        // non-auto-delete
+        // with persistent bindings
+        cfg.ConfigureEndpoints(context);
 
         // configure receive endpoint and bind message type
         cfg.ReceiveEndpoint("lead-created-queue", e =>

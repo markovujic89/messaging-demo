@@ -1,16 +1,20 @@
 ﻿using Lead.Contracts;
 using MassTransit;
+using ProducerApi.Repository;
 
 namespace ProducerApi.Services;
 
 public class LeadService : ILeadService
 {
     private readonly IPublishEndpoint _publishEndpoint;
-    private const int BulkPublishCount = 100000;
+    private const int BulkPublishCount = 4000;
+    private readonly ILeadRepository _leadRepository;
 
-    public LeadService(IPublishEndpoint publishEndpoint)
+    public LeadService(IPublishEndpoint publishEndpoint, 
+        ILeadRepository leadRepository)
     {
         _publishEndpoint = publishEndpoint;
+        _leadRepository = leadRepository;
     }
 
     public async Task PublishLead(CreateLeadRequest request)
@@ -23,9 +27,8 @@ public class LeadService : ILeadService
             Email: request.Email,
             CreatedAt: DateTime.UtcNow
         );
-
-        // publish — MassTransit will map to exchange and routing
-        await _publishEndpoint.Publish(message);
+        
+        await _leadRepository.InsertAndPublishLead(message);
     }
 
     public async Task BulkPublish()
@@ -34,7 +37,7 @@ public class LeadService : ILeadService
 
         for (var i = 0; i < BulkPublishCount; i++)
         {
-            tasks.Add(_publishEndpoint.Publish(CreateNewLead()));
+            tasks.Add(_leadRepository.InsertAndPublishLead(CreateNewLead()));
         }
 
         await Task.WhenAll(tasks);
