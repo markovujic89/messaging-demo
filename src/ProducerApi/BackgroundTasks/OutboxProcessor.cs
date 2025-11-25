@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Lead.Contracts;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using ProducerApi.Models;
@@ -31,14 +32,17 @@ public class OutboxProcessor : IOutboxProcessor
             try
             {
                 // Deserialize message
-                var messageType = Type.GetType($"YourNamespace.Events.{message.Type}, YourAssembly");
+                var messageType = Type.GetType(message.Type);
                 if (messageType == null)
                 {
                     _logger.LogWarning("Unknown message type: {MessageType}", message.Type);
                     continue;
                 }
 
-                var eventMessage = JsonSerializer.Deserialize(message.Data, messageType);
+                var eventMessage = JsonSerializer.Deserialize<LeadCreated>(message.Data, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
 
                 // Publish to message broker
                 await _publishEndpoint.Publish(eventMessage, eventMessage.GetType());

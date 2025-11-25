@@ -34,7 +34,7 @@ public class LeadRepository : ILeadRepository
         
             var outboxMessage = new OutboxMessage
             {
-                Type = lead.GetType().Name,
+                Type = lead.GetType().AssemblyQualifiedName,
                 Data = JsonSerializer.Serialize(lead, new JsonSerializerOptions
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase

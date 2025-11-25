@@ -23,6 +23,5 @@ public class LeadCreatedConsumer : IConsumer<LeadCreated>
             LeadId = context.Message.LeadId,
             MessageId = context.Message.MessageId
         });
-        return;
     }
 }

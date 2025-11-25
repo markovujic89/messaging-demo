@@ -11,22 +11,31 @@ public class OutboxBackgroundService : BackgroundService
         _serviceProvider = serviceProvider;
         _logger = logger;
     }
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        // First execution immediately on startup
+        await ProcessOutboxMessages();
+        
+        // Then continue with regular intervals
         while (!stoppingToken.IsCancellationRequested)
         {
-            try
-            {
-                using var scope = _serviceProvider.CreateScope();
-                var outboxProcessor = scope.ServiceProvider.GetRequiredService<IOutboxProcessor>();
-                await outboxProcessor.ProcessOutboxMessagesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error processing outbox messages");
-            }
-
             await Task.Delay(_interval, stoppingToken);
+            await ProcessOutboxMessages();
+        }
+    }
+
+    private async Task ProcessOutboxMessages()
+    {
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var outboxProcessor = scope.ServiceProvider.GetRequiredService<IOutboxProcessor>();
+            await outboxProcessor.ProcessOutboxMessagesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing outbox messages");
         }
     }
 }
